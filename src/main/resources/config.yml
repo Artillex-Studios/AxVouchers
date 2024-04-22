@@ -1,0 +1,31 @@
+# WARNING! This only works for UNSTACKABLE vouchers!
+# With this setting, we give each voucher an UUID,
+# and prohibit the reuse of vouchers
+#
+# PLEASE READ! This setting does NOT support copying items in creative!
+# If you want to do that, don't. Use the command to give the player a new voucher.
+dupe-protection: false
+
+# Whether to prevent the use of vouchers in crafting recipes
+prevent-crafts: true
+
+# If we should send a message when a requirement fails
+send-requirement-fail: true
+
+database:
+  type: "h2" # h2, sqlite or mysql
+  address: 127.0.0.1
+  port: 3306
+  database: admin
+  username: admin
+  password: 'admin'
+  pool:
+    maximum-pool-size: 10
+    minimum-idle: 10
+    maximum-lifetime: 1800000
+    keepalive-time: 0
+    connection-timeout: 5000
+
+# If we should send debug messages in the console
+# You shouldn't enable this, unless you want to see what happens in the code
+debug: false

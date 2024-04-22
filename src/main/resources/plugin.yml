@@ -1,0 +1,5 @@
+name: "AxVouchers"
+main: "com.artillexstudios.axvouchers.AxVouchersPlugin"
+version: "$version"
+api-version: "1.18"
+folia-supported: true

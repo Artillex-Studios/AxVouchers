@@ -1,0 +1,35 @@
+item:
+  type: "stone_sword"
+  name: "<red>Sword"
+
+placeholders:
+  - id: name
+    default: 1
+
+actions:
+  - "[player] spawn"
+  - "[console] say %player% has got some serious weapons now!"
+  - "[firework] #ff0000,ball"
+  - "[sound] entity_player_levelup,0.5,0.2"
+  - "[item] 1" # You can check the items a bit further down!
+
+random-actions:
+  - chance: 25
+    actions:
+    - "[player] I like oreos!"
+
+#requirements:
+#  - "[permission] your.permission.node"
+#  - "[!permission] the.permission.you.dont.want" # You can use a ! to negate the expression
+#  - "[world] world|world2"
+#  - "[placeholder] %player_name%=Karcsi"
+
+items:
+  - id: 1
+    type: stone
+    name: "Stone"
+
+cooldown: 30 # Seconds
+stackable: false
+consume: false # If the player needs to consume (for example, eat) the item to use it
+confirm: true # If you need to click twice to use this voucher

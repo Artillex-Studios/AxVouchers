@@ -1,0 +1,34 @@
+prefix: "<#DC143C><b>AxVouchers</b> <gray>» "
+
+reload:
+  success:  "<#00FF00>Successfully reloaded the configurations of the plugin in <white><time></white> ms!"
+  fail: "<#ff0000>There were some issues while reloading file(s): <white><files></white>! Please check out the console for more information! Took: <time> ms!"
+
+voucher-not-found: "<#ff0000>There's no registered voucher with name <name>!"
+cooldown: "<#ff0000>You need to wait <white><time></white> more seconds to consume this voucher again!"
+list: "<#00ff00>Currently loaded vouchers: <white><vouchers></white>."
+duped-voucher: "<#ff0000>The voucher you have tried using has been removed due to it being duplicated!"
+no-logs: "<#ff0000>No logs found for player named <white><name></white>!"
+or: " or "
+give: "<white>You have just given <player> <amount> <name> voucher!"
+receive: "<white>You were given <amount> <name> voucher!"
+confirm: "<white>Please click again to use <name> voucher!"
+help:
+  - ""
+  - "<#DC143C><b>AxVouchers <white>|</white>"
+  - " <gray>- <white>/axvouchers reload <gray>| <white>Reload the plugin"
+  - " <gray>- <white>/axvouchers give <player> <voucher> (amount) <gray>| <white>Give a player (amount) vouchers to player <player> of type <voucher>"
+  - " <gray>- <white>/axvouchers list <gray>| <white>Lists all of the loaded vouchers"
+  - " <gray>- <white>/axvouchers gui <gray>| <white>Open the voucher get gui"
+  - " <gray>- <white>/axvouchers logs <player> <gray>| <white>View the voucher use logs of <player>"
+  - ""
+
+fail:
+  permission: "<#ff0000>You do not have permission <permission> to use this voucher!"
+  inverse-permission: "<#ff0000>You have a permission <permission> that prevents you from using this voucher!"
+  inverse-world: "<#ff0000>You are in <world> world in which it's forbidden to use this voucher!"
+  world: "<#ff0000>You are not in world <world> which allows you to open this voucher in!"
+  placeholder: "<#ff0000>The placeholder parsing did not equal the specified value of <value>!"
+  inverse-placeholder: "<#ff0000>The placeholder parsing did equal to the specified value of <value>!"
+  gamemode: "<#ff0000>Your gamemode is not <gamemode>, so we forbade you to open this voucher!"
+  inverse-gamemode: "<#ff0000>Your gamemode is <gamemode>, in which you can't consume a voucher!"
