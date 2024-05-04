@@ -1,5 +1,8 @@
 package com.artillexstudios.axvouchers.command;
 
+import com.artillexstudios.axapi.hologram.Hologram;
+import com.artillexstudios.axapi.hologram.HologramLine;
+import com.artillexstudios.axapi.hologram.HologramPage;
 import com.artillexstudios.axapi.utils.ContainerUtils;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import com.artillexstudios.axapi.utils.StringUtils;
@@ -46,7 +49,7 @@ public class VoucherCommand {
         TagResolver.Single playerPlaceholder = Placeholder.parsed("player", MiniMessage.miniMessage().serialize(voucher.getName()));
         TagResolver.Single name = Placeholder.parsed("name", MiniMessage.miniMessage().serialize(voucher.getName()));
 
-        ContainerUtils.addOrDrop(player.getInventory(), List.of(voucher.getItemStack(amount)), player.getLocation());
+        ContainerUtils.INSTANCE.addOrDrop(player.getInventory(), List.of(voucher.getItemStack(amount)), player.getLocation());
         sender.sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.GIVE, amountPlaceholder, playerPlaceholder, name));
 
         if (!Messages.RECEIVE.isBlank()) {
@@ -122,7 +125,7 @@ public class VoucherCommand {
             builder.setLore(lore);
 
             gui.addItem(new GuiItem(builder.get(), event -> {
-                ContainerUtils.addOrDrop(sender.getInventory(), List.of(voucher.getItemStack(1)), sender.getLocation());
+                ContainerUtils.INSTANCE.addOrDrop(sender.getInventory(), List.of(voucher.getItemStack(1)), sender.getLocation());
             }));
         }
 

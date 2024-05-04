@@ -1,8 +1,8 @@
 package com.artillexstudios.axvouchers.voucher;
 
 import com.artillexstudios.axapi.items.WrappedItemStack;
+import com.artillexstudios.axapi.items.component.DataComponent;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
-import com.artillexstudios.axapi.libs.yamlassist.YamlAssist;
 import com.artillexstudios.axapi.utils.YamlUtils;
 import com.artillexstudios.axvouchers.config.Config;
 import org.apache.commons.io.FileUtils;
@@ -109,11 +109,7 @@ public class Vouchers {
 
     public static UUID getUUID(ItemStack item) {
         WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
-        if (!wrappedItemStack.hasTag()) {
-            return null;
-        }
-
-        CompoundTag tag = wrappedItemStack.getCompoundTag();
+        CompoundTag tag = wrappedItemStack.get(DataComponent.CUSTOM_DATA);
         UUID uuid = tag.getUUID("axvouchers-uuid");
 
         if (Config.DEBUG) {
@@ -125,11 +121,7 @@ public class Vouchers {
 
     public static Voucher fromItem(ItemStack item) {
         WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
-        if (!wrappedItemStack.hasTag()) {
-            return null;
-        }
-
-        CompoundTag tag = wrappedItemStack.getCompoundTag();
+        CompoundTag tag = wrappedItemStack.get(DataComponent.CUSTOM_DATA);
         if (!tag.contains("axvouchers-id")) {
             if (Config.DEBUG) {
                 log.info("Tag does not contain axvouchers-id!");

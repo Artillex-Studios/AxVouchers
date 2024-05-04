@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.7"
 }
 
 group = "com.artillexstudios.axvouchers"
@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.artillexstudios.axapi:axapi:1.4.146")
+    implementation("com.artillexstudios.axapi:axapi:1.4.190:all")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("dev.triumphteam:triumph-gui:3.1.7")
     compileOnly("com.h2database:h2:2.2.220")
@@ -26,6 +26,7 @@ dependencies {
     compileOnly("org.apache.commons:commons-text:1.11.0")
     compileOnly("org.apache.commons:commons-math3:3.6.1")
     compileOnly("me.clip:placeholderapi:2.11.5")
+    compileOnly("it.unimi.dsi:fastutil:8.5.13")
 }
 
 tasks {

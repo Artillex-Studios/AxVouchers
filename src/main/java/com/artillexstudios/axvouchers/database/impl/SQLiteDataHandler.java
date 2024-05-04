@@ -34,7 +34,7 @@ public class SQLiteDataHandler implements DataHandler {
             return;
         }
 
-        try (PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_users`(`id` INT AUTOINCREMENT PRIMARY KEY, `name` VARCHAR(16), `uuid` VARCHAR(36));")) {
+        try (PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_users`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(16), `uuid` VARCHAR(36));")) {
             statement.executeUpdate();
         } catch (SQLException exception) {
             log.error("An unexpected error occurred while setting up database!", exception);
@@ -48,7 +48,7 @@ public class SQLiteDataHandler implements DataHandler {
             return;
         }
 
-        try (PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_logs`(`id` INT AUTOINCREMENT PRIMARY KEY, `user_id` INT, `time` TIMESTAMP, `voucher_type` VARCHAR(128), `voucher_uuid` VARCHAR(36), `remove_reason` VARCHAR(256));")) {
+        try (PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_logs`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_id` INT, `time` TIMESTAMP, `voucher_type` VARCHAR(128), `voucher_uuid` VARCHAR(36), `remove_reason` VARCHAR(256));")) {
             statement.executeUpdate();
         } catch (SQLException exception) {
             log.error("An unexpected error occurred while setting up database!", exception);

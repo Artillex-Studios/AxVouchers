@@ -4,6 +4,8 @@ import com.artillexstudios.axapi.AxPlugin;
 import com.artillexstudios.axapi.items.PacketItemModifier;
 import com.artillexstudios.axapi.libs.libby.BukkitLibraryManager;
 import com.artillexstudios.axapi.libs.libby.Library;
+import com.artillexstudios.axapi.libs.libby.logging.LogLevel;
+import com.artillexstudios.axapi.utils.FeatureFlags;
 import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axvouchers.command.VoucherCommand;
 import com.artillexstudios.axvouchers.config.Config;
@@ -35,6 +37,12 @@ public class AxVouchersPlugin extends AxPlugin {
 
     public DataHandler getDataHandler() {
         return dataHandler;
+    }
+
+    @Override
+    public void updateFlags() {
+        FeatureFlags.PACKET_ENTITY_TRACKER_ENABLED.set(true);
+        FeatureFlags.DEBUG.set(true);
     }
 
     @Override
@@ -95,16 +103,17 @@ public class AxVouchersPlugin extends AxPlugin {
                 .groupId("org.xerial")
                 .artifactId("sqlite-jdbc")
                 .version("3.42.0.0")
-                .relocate("org.sqlite", "com.artillexstudios.axvouchers.libs.sqlite")
+                .relocate("org{}sqlite", "com.artillexstudios.axvouchers.libs.sqlite")
                 .build();
 
         Library h2 = Library.builder()
                 .groupId("com.h2database")
                 .artifactId("h2")
                 .version("2.2.220")
-                .relocate("org.h2", "com.artillexstudios.axvouchers.libs.h2")
+                .relocate("org{}h2", "com.artillexstudios.axvouchers.libs.h2")
                 .build();
 
+        libraryManager.setLogLevel(LogLevel.DEBUG);
         libraryManager.loadLibrary(sqLite);
         libraryManager.loadLibrary(h2);
     }

@@ -23,7 +23,7 @@ public class RequirementInversePlaceholder extends Requirement {
 
     @Override
     public boolean check(Player player, Voucher voucher, String arguments) {
-        if (!ClassUtils.classExists("me.clip.placeholderapi.PlaceholderAPI")) {
+        if (!ClassUtils.INSTANCE.classExists("me.clip.placeholderapi.PlaceholderAPI")) {
             log.error("PlaceholderAPI is not present on this server, yet you tried to use placeholder requirements in voucher {}!", voucher.getId());
             return false;
         }

@@ -16,7 +16,7 @@ public class ActionPlayerCommand extends Action {
     @Override
     public void run(Player player, Voucher voucher, String arguments) {
         String formatted = arguments.replace("%player%", player.getName());
-        if (ClassUtils.classExists("me.clip.placeholderapi.PlaceholderAPI")) {
+        if (ClassUtils.INSTANCE.classExists("me.clip.placeholderapi.PlaceholderAPI")) {
             formatted = PlaceholderAPI.setPlaceholders(player, formatted);
         }
 

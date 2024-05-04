@@ -1,6 +1,7 @@
 package com.artillexstudios.axvouchers.voucher;
 
 import com.artillexstudios.axapi.items.WrappedItemStack;
+import com.artillexstudios.axapi.items.component.DataComponent;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
 import com.artillexstudios.axapi.libs.boostedyaml.boostedyaml.block.implementation.Section;
 import com.artillexstudios.axapi.utils.ItemBuilder;
@@ -140,7 +141,7 @@ public class Voucher {
     public ItemStack getItemStack(int amount) {
         ItemStack stack = itemStack.clone();
         WrappedItemStack.edit(stack, (item) -> {
-            CompoundTag tag = item.getCompoundTag();
+            CompoundTag tag = item.get(DataComponent.CUSTOM_DATA);
             tag.putString("axvouchers-id", getId());
 
             if (Config.DUPE_PROTECTION && !stackable) {
@@ -149,6 +150,7 @@ public class Voucher {
 
                 DataHandler.getInstance().insertAntidupe(uuid, amount);
             }
+            item.set(DataComponent.CUSTOM_DATA, tag);
             return null;
         });
         stack.setAmount(amount);
