@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -18,7 +20,7 @@ public class FileUtils {
     private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
     public static void copyFromResource(@NotNull String path) {
-        try (ZipFile zip = new ZipFile(AxVouchersPlugin.getInstance().getClass().getProtectionDomain().getCodeSource().getLocation().getPath())) {
+        try (ZipFile zip = new ZipFile(Paths.get(AxVouchersPlugin.getInstance().getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toFile())) {
             for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
                 ZipEntry entry = it.next();
                 if (entry.getName().startsWith(path + "/")) {
@@ -32,7 +34,7 @@ public class FileUtils {
                     Files.copy(resource, PLUGIN_DIRECTORY.resolve(entry.getName()));
                 }
             }
-        } catch (IOException exception) {
+        } catch (IOException | URISyntaxException exception) {
             log.error("An unexpected error occurred while extracting directory {} from plugin's assets!", path, exception);
         }
     }

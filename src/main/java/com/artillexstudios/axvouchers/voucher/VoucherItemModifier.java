@@ -45,14 +45,11 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         tag.putByteArray("axvouchers-previous-state", serialized);
 
         List<Component> lore = stack.get(DataComponent.LORE).lines();
+
         if (lore.isEmpty()) {
             // We can just insert our lore
             if (!voucher.getLore().isEmpty()) {
                 stack.set(DataComponent.LORE, new ItemLore(new ArrayList<>(voucher.getLore()), List.of()));
-            }
-
-            if (voucher.getName() != null && voucher.getName() != Component.empty()) {
-                stack.set(DataComponent.CUSTOM_NAME, voucher.getName());
             }
         } else {
             // The item already has some lore. I guess we want to put it at the end maybe?
@@ -62,10 +59,10 @@ public class VoucherItemModifier implements PacketItemModifierListener {
             if (voucher.getLore() != null && !voucher.getLore().isEmpty()) {
                 stack.set(DataComponent.LORE, new ItemLore(newLore));
             }
+        }
 
-            if (voucher.getName() != null && voucher.getName() != Component.empty()) {
-                stack.set(DataComponent.CUSTOM_NAME, voucher.getName());
-            }
+        if (voucher.getName() != null && voucher.getName() != Component.empty()) {
+            stack.set(DataComponent.CUSTOM_NAME, voucher.getName());
         }
 
         stack.set(DataComponent.MATERIAL, voucher.getMaterial());
@@ -97,6 +94,7 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         WrappedItemStack wrapped = WrappedItemStack.wrap(previous);
         ItemLore lore = wrapped.get(DataComponent.LORE);
         stack.set(DataComponent.LORE, lore);
+        stack.set(DataComponent.CUSTOM_NAME, Component.empty());
         tag.remove("axvouchers-previous-state");
     }
 }
