@@ -57,8 +57,7 @@ public class Voucher {
         itemStack = new ItemBuilder(section.getSection("item")).setLore(List.of()).setName("").get();
         String name = section.getString("item.name");
         this.name = name == null ? this.name : StringUtils.format(name);
-        List<String> lore = section.getStringList("item.lore");
-        this.lore = lore == null ? this.lore : StringUtils.formatList(lore);
+        this.lore = StringUtils.formatList(section.getStringList("item.lore", List.of()));
         String type = section.getString("item.type");
         if (type == null) {
             type = section.getString("item.material");
