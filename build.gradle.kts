@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.artillexstudios.axapi:axapi:1.4.214:all")
+    implementation("com.artillexstudios.axapi:axapi:1.4.259:all")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("dev.triumphteam:triumph-gui:3.1.7")
     compileOnly("com.h2database:h2:2.2.220")

@@ -1,9 +1,14 @@
 package com.artillexstudios.axvouchers.command;
 
+import com.artillexstudios.axapi.AxPlugin;
 import com.artillexstudios.axapi.hologram.Hologram;
 import com.artillexstudios.axapi.hologram.HologramLine;
 import com.artillexstudios.axapi.hologram.HologramPage;
+import com.artillexstudios.axapi.items.WrappedItemStack;
+import com.artillexstudios.axapi.nms.NMSHandlers;
+import com.artillexstudios.axapi.packetentity.PacketEntity;
 import com.artillexstudios.axapi.utils.ContainerUtils;
+import com.artillexstudios.axapi.utils.EquipmentSlot;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axvouchers.config.Config;
@@ -24,6 +29,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -189,5 +195,33 @@ public class VoucherCommand {
         }
 
         gui.open(sender);
+    }
+
+    private PacketEntity entity;
+
+    @Subcommand("test")
+    public void test(Player sender) {
+        entity = NMSHandlers.getNmsHandler().createEntity(EntityType.ARMOR_STAND, sender.getLocation());
+        entity.onInteract(event -> {
+            event.getPlayer().sendMessage("Hii!");
+        });
+        System.out.println(entity.meta().getClass());
+        entity.meta().glowing(true);
+        entity.meta().customNameVisible(true);
+        entity.meta().invisible(true);
+        entity.meta().name(StringUtils.format("<red>Bruh"));
+        entity.spawn();
+    }
+
+    @Subcommand("test2")
+    public void test2(Player sender) {
+        Hologram hologram = new Hologram(sender.getLocation(), "hologram");
+        hologram.addLine("&#ff0000Sziaaa!", HologramLine.Type.TEXT);
+        hologram.addLine(WrappedItemStack.wrap(new ItemStack(Material.ARROW)).toSNBT(), HologramLine.Type.ITEM_STACK);
+    }
+
+    @Subcommand("test3")
+    public void test3(Player sender) {
+        entity.teleport(sender.getLocation());
     }
 }

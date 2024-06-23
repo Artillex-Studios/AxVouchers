@@ -1,7 +1,7 @@
 package com.artillexstudios.axvouchers.actions.impl;
 
+import com.artillexstudios.axapi.reflection.ClassUtils;
 import com.artillexstudios.axapi.scheduler.Scheduler;
-import com.artillexstudios.axapi.utils.ClassUtils;
 import com.artillexstudios.axvouchers.actions.Action;
 import com.artillexstudios.axvouchers.voucher.Voucher;
 import me.clip.placeholderapi.PlaceholderAPI;

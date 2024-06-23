@@ -1,6 +1,6 @@
 package com.artillexstudios.axvouchers.requirements.impl;
 
-import com.artillexstudios.axapi.utils.ClassUtils;
+import com.artillexstudios.axapi.reflection.ClassUtils;
 import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axvouchers.config.Config;
 import com.artillexstudios.axvouchers.config.Messages;

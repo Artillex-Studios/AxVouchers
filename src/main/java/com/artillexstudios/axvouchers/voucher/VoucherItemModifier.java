@@ -3,7 +3,7 @@ package com.artillexstudios.axvouchers.voucher;
 import com.artillexstudios.axapi.items.PacketItemModifier;
 import com.artillexstudios.axapi.items.PacketItemModifierListener;
 import com.artillexstudios.axapi.items.WrappedItemStack;
-import com.artillexstudios.axapi.items.component.DataComponent;
+import com.artillexstudios.axapi.items.component.DataComponents;
 import com.artillexstudios.axapi.items.component.ItemLore;
 import com.artillexstudios.axapi.items.component.ProfileProperties;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
@@ -20,7 +20,7 @@ public class VoucherItemModifier implements PacketItemModifierListener {
 
     @Override
     public void modifyItemStack(Player player, WrappedItemStack stack, PacketItemModifier.Context context) {
-        CompoundTag tag = stack.get(DataComponent.CUSTOM_DATA);
+        CompoundTag tag = stack.get(DataComponents.customData());
         if (!tag.contains("axvouchers-id")) {
             return;
         }
@@ -31,12 +31,12 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         }
 
         if (context == PacketItemModifier.Context.EQUIPMENT) {
-            stack.set(DataComponent.MATERIAL, voucher.getMaterial());
+            stack.set(DataComponents.material(), voucher.getMaterial());
 
             if (voucher.getTexture() != null && voucher.getMaterial() == Material.PLAYER_HEAD) {
                 ProfileProperties properties = new ProfileProperties(NIL_UUID, "axvouchers");
                 properties.put("textures", new ProfileProperties.Property("textures", voucher.getTexture(), null));
-                stack.set(DataComponent.PROFILE, properties);
+                stack.set(DataComponents.profile(), properties);
             }
             return;
         }
@@ -44,12 +44,12 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         byte[] serialized = stack.serialize();
         tag.putByteArray("axvouchers-previous-state", serialized);
 
-        List<Component> lore = stack.get(DataComponent.LORE).lines();
+        List<Component> lore = stack.get(DataComponents.lore()).lines();
 
         if (lore.isEmpty()) {
             // We can just insert our lore
             if (!voucher.getLore().isEmpty()) {
-                stack.set(DataComponent.LORE, new ItemLore(new ArrayList<>(voucher.getLore()), List.of()));
+                stack.set(DataComponents.lore(), new ItemLore(new ArrayList<>(voucher.getLore()), List.of()));
             }
         } else {
             // The item already has some lore. I guess we want to put it at the end maybe?
@@ -57,25 +57,25 @@ public class VoucherItemModifier implements PacketItemModifierListener {
             newLore.addAll(lore);
 
             if (voucher.getLore() != null && !voucher.getLore().isEmpty()) {
-                stack.set(DataComponent.LORE, new ItemLore(newLore));
+                stack.set(DataComponents.lore(), new ItemLore(newLore));
             }
         }
 
         if (voucher.getName() != null && voucher.getName() != Component.empty()) {
-            stack.set(DataComponent.CUSTOM_NAME, voucher.getName());
+            stack.set(DataComponents.customName(), voucher.getName());
         }
 
-        stack.set(DataComponent.MATERIAL, voucher.getMaterial());
+        stack.set(DataComponents.material(), voucher.getMaterial());
         if (voucher.getTexture() != null && voucher.getMaterial() == Material.PLAYER_HEAD) {
             ProfileProperties properties = new ProfileProperties(NIL_UUID, "axvouchers");
             properties.put("textures", new ProfileProperties.Property("textures", voucher.getTexture(), null));
-            stack.set(DataComponent.PROFILE, properties);
+            stack.set(DataComponents.profile(), properties);
         }
     }
 
     @Override
     public void restore(WrappedItemStack stack) {
-        CompoundTag tag = stack.get(DataComponent.CUSTOM_DATA);
+        CompoundTag tag = stack.get(DataComponents.customData());
         if (!tag.contains("axvouchers-id")) {
             return;
         }
@@ -92,9 +92,9 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         }
 
         WrappedItemStack wrapped = WrappedItemStack.wrap(previous);
-        ItemLore lore = wrapped.get(DataComponent.LORE);
-        stack.set(DataComponent.LORE, lore);
-        stack.set(DataComponent.CUSTOM_NAME, Component.empty());
+        ItemLore lore = wrapped.get(DataComponents.lore());
+        stack.set(DataComponents.lore(), lore);
+        stack.set(DataComponents.customName(), Component.empty());
         tag.remove("axvouchers-previous-state");
     }
 }
