@@ -1,5 +1,8 @@
 package com.artillexstudios.axvouchers.listeners;
 
+import com.artillexstudios.axapi.items.WrappedItemStack;
+import com.artillexstudios.axapi.items.component.DataComponents;
+import com.artillexstudios.axapi.items.nbt.CompoundTag;
 import com.artillexstudios.axapi.utils.Cooldown;
 import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axvouchers.config.Config;
@@ -10,6 +13,7 @@ import com.artillexstudios.axvouchers.voucher.Voucher;
 import com.artillexstudios.axvouchers.voucher.Vouchers;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +34,11 @@ public class VoucherUseListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(VoucherUseListener.class);
     private static final HashMap<UUID, String> CONFIRM = new HashMap<>();
     private static final Cooldown<UUID> COOLDOWN = new Cooldown<>();
+    private static final Cooldown<UUID> SHORT_COOLDOWN = new Cooldown<>();
+
+    public static void clear(Player player) {
+        CONFIRM.remove(player.getUniqueId());
+    }
 
     @EventHandler
     public void onPlayerInteractEvent(PlayerInteractEvent event) {
@@ -53,7 +62,10 @@ public class VoucherUseListener implements Listener {
             return;
         }
 
-        Voucher voucher = Vouchers.fromItem(item);
+        WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
+        CompoundTag tag = wrappedItemStack.get(DataComponents.customData());
+
+        Voucher voucher = Vouchers.fromItem(tag);
 
         if (voucher == null) {
             if (Config.DEBUG) {
@@ -72,20 +84,26 @@ public class VoucherUseListener implements Listener {
             return;
         }
 
+        long shortRemaining = SHORT_COOLDOWN.getRemaining(event.getPlayer().getUniqueId());
+        if (shortRemaining > 0) {
+            return;
+        }
+
         long remaining = COOLDOWN.getRemainingAsSeconds(event.getPlayer().getUniqueId());
         if (remaining > 0) {
             event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.COOLDOWN, Placeholder.parsed("time", String.valueOf(remaining))));
             return;
         }
 
-        UUID uuid = Vouchers.getUUID(item);
+        String placeholderString = Vouchers.placeholderString(tag);
+        UUID uuid = Vouchers.getUUID(tag);
         if (Config.DUPE_PROTECTION && !voucher.isStackable()) {
             if (uuid == null) {
                 item.setAmount(0);
 
                 event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.DUPED_VOUCHER));
                 DataHandler.DATA_THREAD.submit(() -> {
-                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, NIL_UUID, RemovalReason.UNKNOWN_UUID.name());
+                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, NIL_UUID, RemovalReason.UNKNOWN_UUID.name(), placeholderString);
                 });
                 return;
             }
@@ -95,7 +113,7 @@ public class VoucherUseListener implements Listener {
 
                 event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.DUPED_VOUCHER));
                 DataHandler.DATA_THREAD.submit(() -> {
-                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid, RemovalReason.MORE_THAN_ISSUED.name());
+                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid, RemovalReason.MORE_THAN_ISSUED.name(), placeholderString);
                 });
                 return;
             }
@@ -108,8 +126,10 @@ public class VoucherUseListener implements Listener {
                 log.info("Using voucher for player {}!", event.getPlayer().getName());
             }
 
+            TagResolver[] resolvers = Vouchers.tagResolvers(placeholderString);
+
             if ((voucher.isConfirm() && confirm == null) || (voucher.isConfirm() && !Objects.equals(confirm, voucher.getId()))) {
-                event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.CONFIRM, Placeholder.parsed("name", MiniMessage.miniMessage().serialize(voucher.getName()))));
+                event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.CONFIRM, Placeholder.parsed("name", MiniMessage.miniMessage().serialize(StringUtils.format(voucher.getName(), resolvers)))));
                 CONFIRM.put(event.getPlayer().getUniqueId(), voucher.getId());
                 return;
             }
@@ -119,12 +139,13 @@ public class VoucherUseListener implements Listener {
             }
 
             DataHandler.DATA_THREAD.submit(() -> {
-                DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid == null ? NIL_UUID : uuid, RemovalReason.USE.name());
+                DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid == null ? NIL_UUID : uuid, RemovalReason.USE.name(), placeholderString);
             });
 
+            SHORT_COOLDOWN.addCooldown(event.getPlayer().getUniqueId(), 250);
             COOLDOWN.addCooldown(event.getPlayer().getUniqueId(), Duration.ofSeconds(voucher.getCooldown()).toMillis());
             item.setAmount(item.getAmount() - 1);
-            voucher.doUse(event.getPlayer());
+            voucher.doUse(event.getPlayer(), tag);
         }
     }
 
@@ -132,13 +153,20 @@ public class VoucherUseListener implements Listener {
     public void onPlayerItemConsumeEvent(PlayerItemConsumeEvent event) {
         ItemStack item = event.getPlayer().getInventory().getItem(event.getHand());
         if (item == null || item.getType().isAir()) return;
-        Voucher voucher = Vouchers.fromItem(item);
+        WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
+        CompoundTag tag = wrappedItemStack.get(DataComponents.customData());
+        Voucher voucher = Vouchers.fromItem(tag);
 
         if (voucher == null) {
             return;
         }
 
         event.setCancelled(true);
+
+        long shortRemaining = SHORT_COOLDOWN.getRemaining(event.getPlayer().getUniqueId());
+        if (shortRemaining > 0) {
+            return;
+        }
 
         long remaining = COOLDOWN.getRemainingAsSeconds(event.getPlayer().getUniqueId());
         if (remaining > 0) {
@@ -150,14 +178,15 @@ public class VoucherUseListener implements Listener {
             return;
         }
 
-        UUID uuid = Vouchers.getUUID(item);
+        String placeholderString = Vouchers.placeholderString(tag);
+        UUID uuid = Vouchers.getUUID(tag);
         if (Config.DUPE_PROTECTION && !voucher.isStackable()) {
             if (uuid == null) {
                 item.setAmount(0);
 
                 event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.DUPED_VOUCHER));
                 DataHandler.DATA_THREAD.submit(() -> {
-                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, NIL_UUID, RemovalReason.UNKNOWN_UUID.name());
+                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, NIL_UUID, RemovalReason.UNKNOWN_UUID.name(), placeholderString);
                 });
                 return;
             }
@@ -167,7 +196,7 @@ public class VoucherUseListener implements Listener {
 
                 event.getPlayer().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.DUPED_VOUCHER));
                 DataHandler.DATA_THREAD.submit(() -> {
-                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid, RemovalReason.MORE_THAN_ISSUED.name());
+                    DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid, RemovalReason.MORE_THAN_ISSUED.name(), placeholderString);
                 });
                 return;
             }
@@ -186,17 +215,13 @@ public class VoucherUseListener implements Listener {
             }
 
             DataHandler.DATA_THREAD.submit(() -> {
-                DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid == null ? NIL_UUID : uuid, RemovalReason.USE.name());
+                DataHandler.getInstance().insertLog(event.getPlayer(), voucher, uuid == null ? NIL_UUID : uuid, RemovalReason.USE.name(), placeholderString);
             });
 
+            SHORT_COOLDOWN.addCooldown(event.getPlayer().getUniqueId(), 250);
             COOLDOWN.addCooldown(event.getPlayer().getUniqueId(), Duration.ofSeconds(voucher.getCooldown()).toMillis());
             item.setAmount(item.getAmount() - 1);
-            voucher.doUse(event.getPlayer());
+            voucher.doUse(event.getPlayer(), tag);
         }
-    }
-
-    public static void clear(Player player) {
-        CONFIRM.remove(player.getUniqueId());
-        COOLDOWN.remove(player.getUniqueId());
     }
 }

@@ -3,8 +3,7 @@ item:
   name: "<red>Sword"
 
 placeholders:
-  - id: name
-    default: 1
+  - "name"
 
 actions:
   - "[player] spawn"
@@ -27,7 +26,7 @@ random-actions:
 items:
   - id: 1
     type: stone
-    name: "Stone"
+    name: "Stone <name>"
 
 cooldown: 30 # Seconds
 stackable: false

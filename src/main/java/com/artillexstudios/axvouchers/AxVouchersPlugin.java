@@ -6,7 +6,6 @@ import com.artillexstudios.axapi.libs.libby.BukkitLibraryManager;
 import com.artillexstudios.axapi.libs.libby.Library;
 import com.artillexstudios.axapi.libs.libby.logging.LogLevel;
 import com.artillexstudios.axapi.utils.FeatureFlags;
-import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axvouchers.command.VoucherCommand;
 import com.artillexstudios.axvouchers.config.Config;
 import com.artillexstudios.axvouchers.config.Messages;
@@ -18,18 +17,18 @@ import com.artillexstudios.axvouchers.listeners.CraftListener;
 import com.artillexstudios.axvouchers.listeners.FireworkListener;
 import com.artillexstudios.axvouchers.listeners.PlayerListener;
 import com.artillexstudios.axvouchers.listeners.VoucherUseListener;
-import com.artillexstudios.axvouchers.voucher.Voucher;
 import com.artillexstudios.axvouchers.voucher.VoucherItemModifier;
 import com.artillexstudios.axvouchers.voucher.Vouchers;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import dev.jorel.commandapi.CommandAPI;
 import org.bukkit.Bukkit;
-import revxrsal.commands.bukkit.BukkitCommandActor;
-import revxrsal.commands.bukkit.BukkitCommandHandler;
-import revxrsal.commands.exception.CommandErrorException;
 
 public class AxVouchersPlugin extends AxPlugin {
     private static AxVouchersPlugin INSTANCE;
     private DataHandler dataHandler;
+
+    {
+        loadLibraries();
+    }
 
     public static AxVouchersPlugin getInstance() {
         return INSTANCE;
@@ -46,10 +45,13 @@ public class AxVouchersPlugin extends AxPlugin {
     }
 
     @Override
+    public void load() {
+       VoucherCommand.INSTANCE.load(this);
+    }
+
+    @Override
     public void enable() {
         INSTANCE = this;
-
-        loadLibraries();
 
         reload();
 
@@ -74,31 +76,16 @@ public class AxVouchersPlugin extends AxPlugin {
     }
 
     private void loadCommands() {
-        BukkitCommandHandler handler = BukkitCommandHandler.create(this);
+        CommandAPI.onEnable();
 
-        handler.registerValueResolver(Voucher.class, resolver -> {
-            String voucherName = resolver.popForParameter();
-            Voucher voucher = Vouchers.parse(voucherName);
-            if (voucher == null) {
-                resolver.actor().as(BukkitCommandActor.class).getSender().sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.VOUCHER_NOT_FOUND, Placeholder.parsed("name", voucherName)));
-                throw new CommandErrorException();
-            }
-
-            return voucher;
-        });
-
-        handler.getAutoCompleter().registerParameterSuggestions(Voucher.class, (args, sender, command) -> Vouchers.getVoucherNames());
-
-        handler.register(new VoucherCommand());
-
-        if (handler.isBrigadierSupported()) {
-            handler.registerBrigadier();
-        }
+        VoucherCommand.INSTANCE.register();
     }
 
     private void loadLibraries() {
         BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
         libraryManager.addMavenCentral();
+        libraryManager.addRepository("https://repo.codemc.org/repository/maven-public/");
+
         Library sqLite = Library.builder()
                 .groupId("org.xerial")
                 .artifactId("sqlite-jdbc")
@@ -113,9 +100,25 @@ public class AxVouchersPlugin extends AxPlugin {
                 .relocate("org{}h2", "com.artillexstudios.axvouchers.libs.h2")
                 .build();
 
+        Library triumphGui = Library.builder()
+                .groupId("dev{}triumphteam")
+                .artifactId("triumph-gui")
+                .version("3.1.7")
+                .relocate("dev{}triumphteam", "com.artillexstudios.axvouchers.libs.triumphgui")
+                .build();
+
+        Library hikariCP = Library.builder()
+                .groupId("com{}zaxxer")
+                .artifactId("HikariCP")
+                .version("5.0.1")
+                .relocate("com{}zaxxer", "com.artillexstudios.axvouchers.libs.hikaricp")
+                .build();
+
         libraryManager.setLogLevel(LogLevel.DEBUG);
         libraryManager.loadLibrary(sqLite);
         libraryManager.loadLibrary(h2);
+        libraryManager.loadLibrary(triumphGui);
+        libraryManager.loadLibrary(hikariCP);
     }
 
     @Override
@@ -130,5 +133,6 @@ public class AxVouchersPlugin extends AxPlugin {
     public void disable() {
         dataHandler.disable();
         DataHandler.DATA_THREAD.stop();
+        CommandAPI.onDisable();
     }
 }

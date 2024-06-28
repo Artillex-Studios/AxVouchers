@@ -1,6 +1,7 @@
 package com.artillexstudios.axvouchers.actions.impl;
 
 import com.artillexstudios.axapi.scheduler.Scheduler;
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axvouchers.AxVouchersPlugin;
 import com.artillexstudios.axvouchers.actions.Action;
 import com.artillexstudios.axvouchers.voucher.Voucher;
@@ -25,7 +26,7 @@ public class ActionFirework extends Action {
     }
 
     @Override
-    public void run(Player player, Voucher voucher, String arguments) {
+    public void run(Player player, Voucher voucher, String arguments, Pair<String, String>[] placeholders) {
         String[] split = arguments.split(",");
         Color fireWorkColor = Color.fromRGB(Integer.valueOf(split[0].substring(1, 3), 16), Integer.valueOf(split[0].substring(3, 5), 16), Integer.valueOf(split[0].substring(5, 7), 16));
         Scheduler.get().run(task -> {

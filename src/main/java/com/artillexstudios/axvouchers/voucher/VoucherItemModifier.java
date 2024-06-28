@@ -7,12 +7,16 @@ import com.artillexstudios.axapi.items.component.DataComponents;
 import com.artillexstudios.axapi.items.component.ItemLore;
 import com.artillexstudios.axapi.items.component.ProfileProperties;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
+import com.artillexstudios.axapi.utils.Pair;
+import com.artillexstudios.axapi.utils.StringUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class VoucherItemModifier implements PacketItemModifierListener {
@@ -30,10 +34,18 @@ public class VoucherItemModifier implements PacketItemModifierListener {
             return;
         }
 
-        if (context == PacketItemModifier.Context.EQUIPMENT) {
-            stack.set(DataComponents.material(), voucher.getMaterial());
+        String rawPlaceholders = Vouchers.placeholderString(tag);
+        Pair<String, String>[] cachedPlaceholders = voucher.placeholderCache().computeIfAbsent(rawPlaceholders, Vouchers::placeholders);
+        if (context == PacketItemModifier.Context.EQUIPMENT || context == PacketItemModifier.Context.DROPPED_ITEM) {
+            String type = voucher.getMaterial();
+            for (Pair<String, String> placeholder : cachedPlaceholders) {
+                type = type.replace(placeholder.getFirst(), placeholder.getValue());
+            }
 
-            if (voucher.getTexture() != null && voucher.getMaterial() == Material.PLAYER_HEAD) {
+            Material material = Material.matchMaterial(type.toUpperCase(Locale.ENGLISH));
+            stack.set(DataComponents.material(), material == null ? Material.STICK : material);
+
+            if (voucher.getTexture() != null && material == Material.PLAYER_HEAD) {
                 ProfileProperties properties = new ProfileProperties(NIL_UUID, "axvouchers");
                 properties.put("textures", new ProfileProperties.Property("textures", voucher.getTexture(), null));
                 stack.set(DataComponents.profile(), properties);
@@ -43,17 +55,32 @@ public class VoucherItemModifier implements PacketItemModifierListener {
 
         byte[] serialized = stack.serialize();
         tag.putByteArray("axvouchers-previous-state", serialized);
+        stack.set(DataComponents.customData(), tag);
 
         List<Component> lore = stack.get(DataComponents.lore()).lines();
 
         if (lore.isEmpty()) {
             // We can just insert our lore
             if (!voucher.getLore().isEmpty()) {
-                stack.set(DataComponents.lore(), new ItemLore(new ArrayList<>(voucher.getLore()), List.of()));
+                stack.set(DataComponents.lore(), new ItemLore(new ArrayList<>(voucher.loreCache().computeIfAbsent(rawPlaceholders, string -> {
+                    TagResolver[] placeholders = new TagResolver[0];
+                    if (!voucher.placeholders().isEmpty()) {
+                        placeholders = Vouchers.tagResolvers(string);
+                    }
+
+                    return StringUtils.formatList(voucher.getLore(), placeholders);
+                })), List.of()));
             }
         } else {
             // The item already has some lore. I guess we want to put it at the end maybe?
-            List<Component> newLore = new ArrayList<>(voucher.getLore());
+            List<Component> newLore = new ArrayList<>(voucher.loreCache().computeIfAbsent(rawPlaceholders, string -> {
+                TagResolver[] placeholders = new TagResolver[0];
+                if (!voucher.placeholders().isEmpty()) {
+                    placeholders = Vouchers.tagResolvers(string);
+                }
+                return StringUtils.formatList(voucher.getLore(), placeholders);
+            }));
+
             newLore.addAll(lore);
 
             if (voucher.getLore() != null && !voucher.getLore().isEmpty()) {
@@ -61,12 +88,25 @@ public class VoucherItemModifier implements PacketItemModifierListener {
             }
         }
 
-        if (voucher.getName() != null && voucher.getName() != Component.empty()) {
-            stack.set(DataComponents.customName(), voucher.getName());
+        if (voucher.getName() != null && !voucher.getName().isBlank()) {
+            stack.set(DataComponents.customName(), voucher.nameCache().computeIfAbsent(rawPlaceholders, string -> {
+                TagResolver[] placeholders = new TagResolver[0];
+                if (!voucher.placeholders().isEmpty()) {
+                    placeholders = Vouchers.tagResolvers(string);
+                }
+
+                return StringUtils.format(voucher.getName(), placeholders);
+            }));
         }
 
-        stack.set(DataComponents.material(), voucher.getMaterial());
-        if (voucher.getTexture() != null && voucher.getMaterial() == Material.PLAYER_HEAD) {
+        String type = voucher.getMaterial();
+        for (Pair<String, String> placeholder : cachedPlaceholders) {
+            type = type.replace(placeholder.getFirst(), placeholder.getValue());
+        }
+
+        Material material = Material.matchMaterial(type.toUpperCase(Locale.ENGLISH));
+        stack.set(DataComponents.material(), material == null ? Material.STICK : material);
+        if (voucher.getTexture() != null && material == Material.PLAYER_HEAD) {
             ProfileProperties properties = new ProfileProperties(NIL_UUID, "axvouchers");
             properties.put("textures", new ProfileProperties.Property("textures", voucher.getTexture(), null));
             stack.set(DataComponents.profile(), properties);
@@ -86,7 +126,6 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         }
 
         byte[] previous = tag.getByteArray("axvouchers-previous-state");
-
         if (previous.length == 0) {
             return;
         }
@@ -96,5 +135,6 @@ public class VoucherItemModifier implements PacketItemModifierListener {
         stack.set(DataComponents.lore(), lore);
         stack.set(DataComponents.customName(), Component.empty());
         tag.remove("axvouchers-previous-state");
+        stack.set(DataComponents.customData(), tag);
     }
 }

@@ -45,7 +45,7 @@ public class H2DataHandler implements DataHandler {
             return;
         }
 
-        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_logs`(`id` INT AUTO_INCREMENT PRIMARY KEY, `user_id` INT, `time` TIMESTAMP, `voucher_type` VARCHAR(128), `voucher_uuid` UUID, `remove_reason` VARCHAR(256));")) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS `axvouchers_logs`(`id` INT AUTO_INCREMENT PRIMARY KEY, `user_id` INT, `time` TIMESTAMP, `voucher_type` VARCHAR(128), `voucher_uuid` UUID, `remove_reason` VARCHAR(256), `placeholders` VARCHAR(1024));")) {
             statement.executeUpdate();
         } catch (SQLException exception) {
             log.error("An unexpected error occurred while setting up database!", exception);
@@ -95,17 +95,18 @@ public class H2DataHandler implements DataHandler {
     }
 
     @Override
-    public void insertLog(Player player, Voucher voucher, UUID uuid, String removeReason) {
+    public void insertLog(Player player, Voucher voucher, UUID uuid, String removeReason, String placeholders) {
         Pair<UUID, Integer> userId = getUserId(player.getName());
         if (userId == null) {
             return;
         }
 
-        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement("INSERT INTO `axvouchers_logs`(`voucher_type`, `voucher_uuid`, `user_id`, `time`, `remove_reason`) VALUES (?,?,?,NOW(),?);")) {
-            statement.setObject(1, voucher.getId());
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement("INSERT INTO `axvouchers_logs`(`voucher_type`, `voucher_uuid`, `user_id`, `time`, `remove_reason`, `placeholders`) VALUES (?,?,?,NOW(),?,?);")) {
+            statement.setString(1, voucher.getId());
             statement.setObject(2, uuid);
-            statement.setObject(3, userId.getSecond());
-            statement.setObject(4, removeReason);
+            statement.setInt(3, userId.getSecond());
+            statement.setString(4, removeReason);
+            statement.setString(5, placeholders);
             statement.executeUpdate();
         } catch (SQLException exception) {
             log.error("An error occurred while inserting log into the database!", exception);
@@ -129,7 +130,8 @@ public class H2DataHandler implements DataHandler {
                     UUID voucherUUID = (UUID) resultSet.getObject("voucher_uuid");
                     Timestamp time = resultSet.getTimestamp("time");
                     String removeReason = resultSet.getString("remove_reason");
-                    log.add(new VoucherLog.Entry(id, type, time, voucherUUID, removeReason));
+                    String placeholders = resultSet.getString("placeholders");
+                    log.add(new VoucherLog.Entry(id, type, time, voucherUUID, removeReason, placeholders));
                 }
 
                 return log;

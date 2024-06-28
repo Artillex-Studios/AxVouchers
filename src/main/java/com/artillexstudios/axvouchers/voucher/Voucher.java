@@ -1,19 +1,17 @@
 package com.artillexstudios.axvouchers.voucher;
 
 import com.artillexstudios.axapi.items.WrappedItemStack;
-import com.artillexstudios.axapi.items.component.DataComponent;
 import com.artillexstudios.axapi.items.component.DataComponents;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
 import com.artillexstudios.axapi.libs.boostedyaml.boostedyaml.block.implementation.Section;
 import com.artillexstudios.axapi.utils.ItemBuilder;
-import com.artillexstudios.axapi.utils.StringUtils;
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axvouchers.actions.Actions;
 import com.artillexstudios.axvouchers.config.Config;
 import com.artillexstudios.axvouchers.database.DataHandler;
 import com.artillexstudios.axvouchers.requirements.Requirements;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
-import org.apache.commons.math3.util.Pair;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -22,11 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Voucher {
     private static final Logger log = LoggerFactory.getLogger(Voucher.class);
@@ -35,15 +35,19 @@ public class Voucher {
     private final HashMap<String, ItemStack> items = new HashMap<>();
     private final List<String> requirements = new ArrayList<>();
     private final List<String> actions = new ArrayList<>();
+    private final List<String> placeholders = new ArrayList<>();
+    private final ConcurrentHashMap<String, Component> nameCache = new ConcurrentHashMap<>(1);
+    private final ConcurrentHashMap<String, List<Component>> loreCache = new ConcurrentHashMap<>(1);
+    private final ConcurrentHashMap<String, Pair<String, String>[]> placeholderCache = new ConcurrentHashMap<>(1);
     private EnumeratedDistribution<List<String>> randomActions = null;
     private ItemStack itemStack = new ItemStack(Material.STONE);
     private boolean stackable = false;
     private boolean consume = false;
     private boolean confirm = false;
     private int cooldown = -1;
-    private Component name = Component.empty();
-    private List<Component> lore = List.of();
-    private Material material = Material.STONE;
+    private String name = "";
+    private List<String> lore = List.of();
+    private String material;
     private String texture = null;
 
     public Voucher(String id, Section section) {
@@ -51,21 +55,25 @@ public class Voucher {
         this.section = section;
 
         reload();
+        Vouchers.placeholders().addAll(placeholders);
         Vouchers.register(this);
     }
 
     public void reload() {
+        loreCache.clear();
+        nameCache.clear();
+        placeholderCache.clear();
+
         itemStack = new ItemBuilder(section.getSection("item")).setLore(List.of()).setName("").get();
+        itemStack.setType(Material.STICK);
         String name = section.getString("item.name");
-        this.name = name == null ? this.name : StringUtils.format(name);
-        this.lore = StringUtils.formatList(section.getStringList("item.lore", List.of()));
+        this.name = name == null ? this.name : name;
+        this.lore = section.getStringList("item.lore", List.of());
         String type = section.getString("item.type");
         if (type == null) {
             type = section.getString("item.material");
         }
-
-        Material material = Material.matchMaterial(type.toUpperCase(Locale.ENGLISH));
-        this.material = material == null ? Material.STONE : material;
+        this.material = type;
         texture = section.getString("item.texture");
 
         items.clear();
@@ -86,7 +94,7 @@ public class Voucher {
 
         randomActions = null;
         section.getOptionalMapList("random-actions").ifPresent(list -> {
-            List<Pair<List<String>, Double>> randomActions = new ArrayList<>();
+            List<org.apache.commons.math3.util.Pair<List<String>, Double>> randomActions = new ArrayList<>();
 
             for (Map<?, ?> map : list) {
                 Map<Object, Object> castMap = (Map<Object, Object>) map;
@@ -102,7 +110,7 @@ public class Voucher {
 
                 Double chance = ((Number) castMap.get("chance")).doubleValue();
                 List<String> actions = (List<String>) castMap.get("actions");
-                randomActions.add(Pair.create(actions, chance));
+                randomActions.add(org.apache.commons.math3.util.Pair.create(actions, chance));
             }
 
             this.randomActions = new EnumeratedDistribution<>(randomActions);
@@ -110,6 +118,9 @@ public class Voucher {
 
         confirm = section.getBoolean("confirm", confirm);
         cooldown = section.getInt("cooldown", cooldown);
+
+        placeholders.clear();
+        placeholders.addAll(section.getStringList("placeholders", List.of()));
     }
 
     public boolean canUse(Player player) {
@@ -123,14 +134,14 @@ public class Voucher {
         return Requirements.check(player, this, requirements);
     }
 
-    public void doUse(Player player) {
+    public void doUse(Player player, CompoundTag tag) {
         if (!actions.isEmpty()) {
-            Actions.run(player, this, actions);
+            Actions.run(player, this, actions, tag);
         }
 
         if (randomActions != null) {
             List<String> random = randomActions.sample();
-            Actions.run(player, this, random);
+            Actions.run(player, this, random, tag);
         }
     }
 
@@ -138,7 +149,7 @@ public class Voucher {
         return new ItemBuilder(section.getSection("item")).get();
     }
 
-    public ItemStack getItemStack(int amount) {
+    public ItemStack getItemStack(int amount, LinkedHashMap<String, String> placeholders) {
         ItemStack stack = itemStack.clone();
         WrappedItemStack.edit(stack, (item) -> {
             CompoundTag tag = item.get(DataComponents.customData());
@@ -149,6 +160,16 @@ public class Voucher {
                 tag.putUUID("axvouchers-uuid", uuid);
 
                 DataHandler.getInstance().insertAntidupe(uuid, amount);
+            }
+
+            if (placeholders != null && !placeholders.isEmpty()) {
+                StringBuilder builder = new StringBuilder();
+                placeholders.forEach((key, value) -> {
+                    builder.append(key).append('-').append(value).append(';');
+                });
+
+                builder.deleteCharAt(builder.length() - 1);
+                tag.putString("axvouchers-placeholders", builder.toString());
             }
             item.set(DataComponents.customData(), tag);
             return null;
@@ -161,11 +182,11 @@ public class Voucher {
         return items.get(id);
     }
 
-    public Component getName() {
+    public String getName() {
         return name;
     }
 
-    public List<Component> getLore() {
+    public List<String> getLore() {
         return lore;
     }
 
@@ -173,7 +194,7 @@ public class Voucher {
         return String.join(", ", items.keySet());
     }
 
-    public Material getMaterial() {
+    public String getMaterial() {
         return material;
     }
 
@@ -199,6 +220,22 @@ public class Voucher {
 
     public String getTexture() {
         return texture;
+    }
+
+    public List<String> placeholders() {
+        return placeholders;
+    }
+
+    public ConcurrentHashMap<String, Component> nameCache() {
+        return nameCache;
+    }
+
+    public ConcurrentHashMap<String, List<Component>> loreCache() {
+        return loreCache;
+    }
+
+    public ConcurrentHashMap<String, Pair<String, String>[]> placeholderCache() {
+        return placeholderCache;
     }
 
     @Override

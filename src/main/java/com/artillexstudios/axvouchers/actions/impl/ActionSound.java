@@ -1,6 +1,7 @@
 package com.artillexstudios.axvouchers.actions.impl;
 
 import com.artillexstudios.axapi.scheduler.Scheduler;
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axvouchers.actions.Action;
 import com.artillexstudios.axvouchers.voucher.Voucher;
 import org.bukkit.Sound;
@@ -18,7 +19,7 @@ public class ActionSound extends Action {
     }
 
     @Override
-    public void run(Player player, Voucher voucher, String arguments) {
+    public void run(Player player, Voucher voucher, String arguments, Pair<String, String>[] placeholders) {
         String[] split = arguments.split(",");
         if (split.length != 3) {
             log.warn("You need to add {} to fix the sound!", split.length == 1 ? "the volume parameter, separating it from the sound name with a , and the pitch parameter, separating it from the volume with a ," : split.length == 2 ? "the pitch parameter, separating it from the volume with a ," : "");

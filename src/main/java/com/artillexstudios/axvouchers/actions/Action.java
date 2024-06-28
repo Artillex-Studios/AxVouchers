@@ -1,5 +1,6 @@
 package com.artillexstudios.axvouchers.actions;
 
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axvouchers.voucher.Voucher;
 import org.bukkit.entity.Player;
 
@@ -14,7 +15,7 @@ public abstract class Action {
         return id;
     }
 
-    public abstract void run(Player player, Voucher voucher, String arguments);
+    public abstract void run(Player player, Voucher voucher, String arguments, Pair<String, String>[] placeholders);
 
     @Override
     public boolean equals(Object o) {

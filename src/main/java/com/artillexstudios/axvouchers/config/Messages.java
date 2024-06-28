@@ -24,6 +24,7 @@ public class Messages {
     public static String GIVE = "<white>You have just given <player> <amount> <name> voucher!";
     public static String RECEIVE = "<white>You were given <amount> <name> voucher!";
     public static String CONFIRM = "<white>Please click again to use <name> voucher!";
+    public static String PLACEHOLDERS_NOT_SET = "<red>You need to set the <white><placeholders></white> when giving this voucher!";
     public static List<String> HELP = List.of("", "<#DC143C><b>AxVouchers <white>|</white>", " <gray>- <white>/axvouchers reload <gray>| <white>Reload the plugin", " <gray>- <white>/axvouchers give <player> <voucher> (amount) <gray>| <white>Give a player (amount) vouchers to player <player> of type <voucher>", " <gray>- <white>/axvouchers list <gray>| <white>Lists all of the loaded vouchers", " <gray>- <white>/axvouchers gui <gray>| <white>Open the voucher get gui", " <gray>- <white>/axvouchers logs <player> <gray>| <white>View the voucher use logs of <player>", "");
     // Fail messages
     public static String FAIL_PERMISSION = "<#ff0000>You do not have permission <permission> to use this voucher!";
@@ -77,6 +78,7 @@ public class Messages {
         GIVE = config.getString("give", GIVE);
         RECEIVE = config.getString("receive", RECEIVE);
         CONFIRM = config.getString("confirm", CONFIRM);
+        PLACEHOLDERS_NOT_SET = config.getString("placeholders-not-set", PLACEHOLDERS_NOT_SET);
         HELP = config.getStringList("help", HELP);
 
         FAIL_PERMISSION = config.getString("fail.permission", FAIL_PERMISSION);

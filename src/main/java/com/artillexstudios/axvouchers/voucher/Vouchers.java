@@ -1,12 +1,12 @@
 package com.artillexstudios.axvouchers.voucher;
 
-import com.artillexstudios.axapi.items.WrappedItemStack;
-import com.artillexstudios.axapi.items.component.DataComponents;
 import com.artillexstudios.axapi.items.nbt.CompoundTag;
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axapi.utils.YamlUtils;
 import com.artillexstudios.axvouchers.config.Config;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.apache.commons.io.FileUtils;
-import org.bukkit.inventory.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +18,16 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class Vouchers {
     private static final ConcurrentHashMap<String, Voucher> VOUCHERS = new ConcurrentHashMap<>();
+    private static final List<String> placeholders = new ArrayList<>();
     private static final Logger log = LoggerFactory.getLogger(Vouchers.class);
     private static final File VOUCHERS_DIRECTORY = com.artillexstudios.axvouchers.utils.FileUtils.PLUGIN_DIRECTORY.resolve("vouchers/").toFile();
     private static final List<File> FAILED_TO_LOAD = new ArrayList<>();
+    private static final Pattern SEMICOLON = Pattern.compile(";");
+    private static final Pattern DASH = Pattern.compile("-");
 
     public static void register(Voucher voucher) {
         if (VOUCHERS.containsKey(voucher.getId())) {
@@ -107,9 +111,7 @@ public class Vouchers {
         }
     }
 
-    public static UUID getUUID(ItemStack item) {
-        WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
-        CompoundTag tag = wrappedItemStack.get(DataComponents.customData());
+    public static UUID getUUID(CompoundTag tag) {
         UUID uuid = tag.getUUID("axvouchers-uuid");
 
         if (Config.DEBUG) {
@@ -119,9 +121,54 @@ public class Vouchers {
         return uuid;
     }
 
-    public static Voucher fromItem(ItemStack item) {
-        WrappedItemStack wrappedItemStack = WrappedItemStack.wrap(item);
-        CompoundTag tag = wrappedItemStack.get(DataComponents.customData());
+    public static TagResolver[] tagResolvers(String rawString) {
+        if (rawString.isBlank() || !rawString.contains("-")) {
+            return new TagResolver[0];
+        }
+
+        String[] split = SEMICOLON.split(rawString);
+        TagResolver[] placeholders = new TagResolver[split.length];
+        int i = 0;
+        for (String placeholder : split) {
+            String[] keyValuePair = DASH.split(placeholder);
+            placeholders[i] = Placeholder.parsed(keyValuePair[0], keyValuePair[1]);
+            i++;
+        }
+
+        return placeholders;
+    }
+
+    public static String placeholderString(CompoundTag tag) {
+        if (!tag.contains("axvouchers-placeholders")) {
+            return "";
+        }
+
+        String rawString = tag.getString("axvouchers-placeholders");
+        if (rawString.isBlank() || !rawString.contains("-")) {
+            return "";
+        }
+
+        return rawString;
+    }
+
+    public static Pair<String, String>[] placeholders(String rawString) {
+        if (rawString.isBlank() || !rawString.contains("-")) {
+            return new Pair[0];
+        }
+
+        String[] split = SEMICOLON.split(rawString);
+        Pair<String, String>[] placeholders = new Pair[split.length];
+        int i = 0;
+        for (String placeholder : split) {
+            String[] keyValuePair = DASH.split(placeholder);
+            placeholders[i] = Pair.of("<" + keyValuePair[0] + ">", keyValuePair[1]);
+            i++;
+        }
+
+        return placeholders;
+    }
+
+    public static Voucher fromItem(CompoundTag tag) {
         if (!tag.contains("axvouchers-id")) {
             if (Config.DEBUG) {
                 log.info("Tag does not contain axvouchers-id!");
@@ -134,6 +181,10 @@ public class Vouchers {
             log.info("Parsing from id {}!", voucherId);
         }
         return parse(voucherId);
+    }
+
+    public static List<String> placeholders() {
+        return placeholders;
     }
 
     public static List<File> getFailed() {

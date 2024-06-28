@@ -24,7 +24,7 @@ public interface DataHandler {
 
     boolean isDuped(UUID uuid);
 
-    void insertLog(Player player, Voucher voucher, UUID uuid, String removeReason);
+    void insertLog(Player player, Voucher voucher, UUID uuid, String removeReason, String placeholders);
 
     VoucherLog getLogs(String name);
 

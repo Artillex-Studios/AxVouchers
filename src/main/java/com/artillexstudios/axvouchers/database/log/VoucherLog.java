@@ -30,6 +30,6 @@ public class VoucherLog {
         return name;
     }
 
-    public record Entry(int id, String type, Timestamp time, UUID uuid, String duped) {
+    public record Entry(int id, String type, Timestamp time, UUID uuid, String duped, String placeholders) {
     }
 }

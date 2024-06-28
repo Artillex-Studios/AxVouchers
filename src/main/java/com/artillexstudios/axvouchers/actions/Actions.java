@@ -1,5 +1,6 @@
 package com.artillexstudios.axvouchers.actions;
 
+import com.artillexstudios.axapi.items.nbt.CompoundTag;
 import com.artillexstudios.axvouchers.actions.impl.ActionConsoleCommand;
 import com.artillexstudios.axvouchers.actions.impl.ActionFirework;
 import com.artillexstudios.axvouchers.actions.impl.ActionItem;
@@ -8,6 +9,7 @@ import com.artillexstudios.axvouchers.actions.impl.ActionPlayerCommand;
 import com.artillexstudios.axvouchers.actions.impl.ActionSound;
 import com.artillexstudios.axvouchers.config.Config;
 import com.artillexstudios.axvouchers.voucher.Voucher;
+import com.artillexstudios.axvouchers.voucher.Vouchers;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
 import org.slf4j.Logger;
@@ -36,7 +38,7 @@ public class Actions {
         return action;
     }
 
-    public static void run(Player player, Voucher voucher, List<String> actions) {
+    public static void run(Player player, Voucher voucher, List<String> actions, CompoundTag tag) {
         for (String rawAction : actions) {
             if (rawAction == null || rawAction.isBlank()) {
                 continue;
@@ -55,7 +57,8 @@ public class Actions {
             if (Config.DEBUG) {
                 log.info("Running action {} with arguments: {}", id, arguments);
             }
-            action.run(player, voucher, arguments);
+
+            action.run(player, voucher, arguments, voucher.placeholderCache().computeIfAbsent(Vouchers.placeholderString(tag), Vouchers::placeholders));
         }
     }
 }
