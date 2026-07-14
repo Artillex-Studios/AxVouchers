@@ -49,7 +49,7 @@ public class RequirementInverseGamemode extends Requirement {
     @Override
     public void sendFail(Player player, TagResolver... resolvers) {
         if (Config.sendRequirementFail) {
-            player.sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.FAIL_INVERSE_WORLD, resolvers));
+            player.sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.FAIL_INVERSE_GAMEMODE, resolvers));
         }
     }
 }

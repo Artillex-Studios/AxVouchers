@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.artillexstudios.axapi:axapi:1.4.830:all")
-    implementation("dev.jorel:commandapi-paper-shade:11.1.0")
+    implementation("com.artillexstudios.axapi:axapi:2.1.0-DEV-52:all")
+    implementation("dev.jorel:commandapi-paper-shade:11.2.0")
     compileOnly("dev.triumphteam:triumph-gui:3.1.7")
     compileOnly("com.h2database:h2:2.3.232")
     compileOnly("com.zaxxer:HikariCP:5.0.1")
