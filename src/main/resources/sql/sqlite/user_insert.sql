@@ -1,0 +1,1 @@
+INSERT INTO `axvouchers_users`(`uuid`, `name`) VALUES (?,?) RETURNING `id`;

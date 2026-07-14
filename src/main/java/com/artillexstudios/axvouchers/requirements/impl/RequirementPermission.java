@@ -49,7 +49,7 @@ public class RequirementPermission extends Requirement {
 
     @Override
     public void sendFail(Player player, TagResolver... resolvers) {
-        if (Config.SEND_REQUIREMENT_FAIL) {
+        if (Config.sendRequirementFail) {
             player.sendMessage(StringUtils.formatToString(Messages.PREFIX + Messages.FAIL_PERMISSION, resolvers));
         }
     }

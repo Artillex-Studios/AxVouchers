@@ -1,6 +1,7 @@
 package com.artillexstudios.axvouchers.actions.impl;
 
 import com.artillexstudios.axapi.scheduler.Scheduler;
+import com.artillexstudios.axapi.utils.Pair;
 import com.artillexstudios.axvouchers.actions.Action;
 import com.artillexstudios.axvouchers.voucher.Voucher;
 import org.bukkit.entity.Player;
@@ -16,7 +17,7 @@ public class ActionItem extends Action {
     }
 
     @Override
-    public void run(Player player, Voucher voucher, String arguments) {
+    public void run(Player player, Voucher voucher, String arguments, Pair<String, String>[] placeholders) {
         ItemStack item = voucher.getItem(arguments);
         if (item == null) {
             log.warn("There is no item with id {} in {} voucher's config! Registered item ids: {}.", arguments, voucher, voucher.getItemIds());

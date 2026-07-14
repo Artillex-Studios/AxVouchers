@@ -1,0 +1,1 @@
+UPDATE `axvouchers_vouchers` SET `used` = `used` + 1 WHERE `uuid` = ?  AND `used` + 1 <= `amount`;

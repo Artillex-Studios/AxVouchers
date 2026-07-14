@@ -1,5 +1,7 @@
 package com.artillexstudios.axvouchers.listeners;
 
+import com.artillexstudios.axapi.items.WrappedItemStack;
+import com.artillexstudios.axapi.items.component.DataComponents;
 import com.artillexstudios.axvouchers.voucher.Voucher;
 import com.artillexstudios.axvouchers.voucher.Vouchers;
 import org.bukkit.event.EventHandler;
@@ -14,7 +16,7 @@ public class CraftListener implements Listener {
         for (ItemStack item : event.getInventory().getMatrix()) {
             if (item == null || item.getType().isAir()) continue;
 
-            Voucher voucher = Vouchers.fromItem(item);
+            Voucher voucher = Vouchers.fromItem(WrappedItemStack.wrap(item).get(DataComponents.customData()));
             if (voucher != null) {
                 event.getInventory().setResult(null);
             }

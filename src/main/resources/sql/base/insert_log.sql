@@ -1,0 +1,1 @@
+INSERT INTO `axvouchers_logs`(`voucher_type`, `voucher_uuid`, `user_id`, `time`, `remove_reason`, `placeholders`) VALUES (?,?,?,?,?,?);

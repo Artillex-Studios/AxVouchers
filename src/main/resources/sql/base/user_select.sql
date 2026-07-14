@@ -1,0 +1,1 @@
+SELECT `axvouchers_users`.`id`, `axvouchers_users`.`uuid` FROM `axvouchers_users` WHERE `name` = ?;

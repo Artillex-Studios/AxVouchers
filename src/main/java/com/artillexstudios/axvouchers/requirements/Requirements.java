@@ -32,7 +32,7 @@ public class Requirements {
     private static final Requirement GAMEMODE = register(new RequirementGamemode());
 
     public static Requirement register(Requirement requirement) {
-        if (Config.DEBUG) {
+        if (Config.debug) {
             log.info("Registering requirement with id: {}", requirement.getId());
         }
 
@@ -49,14 +49,14 @@ public class Requirements {
             String id = StringUtils.substringBetween(requirement, "[", "]").toLowerCase(Locale.ENGLISH);
             String arguments = StringUtils.substringAfter(requirement, "] ");
 
-            if (Config.DEBUG) {
+            if (Config.debug) {
                 log.info("Looking for requirement with id {}.", id);
             }
 
             Requirement req = REQUIREMENTS.get(id);
             if (req == null) continue;
 
-            if (Config.DEBUG) {
+            if (Config.debug) {
                 log.info("Running requirement {} with arguments: {}", id, arguments);
             }
 

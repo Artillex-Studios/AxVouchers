@@ -1,0 +1,1 @@
+SELECT `axvouchers_logs`.`id`, `axvouchers_logs`.`voucher_type`, `axvouchers_logs`.`time`, `axvouchers_logs`.`voucher_uuid`, `axvouchers_logs`.`remove_reason`, `axvouchers_logs`.`placeholders` FROM `axvouchers_logs`, `axvouchers_users` WHERE `axvouchers_users`.`name` = ? AND `axvouchers_logs`.`user_id` = `axvouchers_users`.`id`;

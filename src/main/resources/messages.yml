@@ -13,6 +13,7 @@ or: " or "
 give: "<white>You have just given <player> <amount> <name> voucher!"
 receive: "<white>You were given <amount> <name> voucher!"
 confirm: "<white>Please click again to use <name> voucher!"
+placeholders-not-set: "<red>You need to set the <white><placeholders></white> when giving this voucher!"
 help:
   - ""
   - "<#DC143C><b>AxVouchers <white>|</white>"

@@ -1,0 +1,1 @@
+SELECT `amount`, `used` FROM `axvouchers_vouchers` WHERE `uuid` = ?;

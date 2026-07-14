@@ -16,16 +16,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class FileUtils {
-    public static final Path PLUGIN_DIRECTORY = AxVouchersPlugin.getInstance().getDataFolder().toPath();;
+    public static final Path PLUGIN_DIRECTORY = AxVouchersPlugin.instance().getDataFolder().toPath();;
     private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
     public static void copyFromResource(@NotNull String path) {
-        try (ZipFile zip = new ZipFile(Paths.get(AxVouchersPlugin.getInstance().getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toFile())) {
+        try (ZipFile zip = new ZipFile(Paths.get(AxVouchersPlugin.instance().getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toFile())) {
             for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
                 ZipEntry entry = it.next();
                 if (entry.getName().startsWith(path + "/")) {
                     if (!entry.getName().endsWith(".yaml") && !entry.getName().endsWith(".yml")) continue;
-                    InputStream resource = AxVouchersPlugin.getInstance().getResource(entry.getName());
+                    InputStream resource = AxVouchersPlugin.instance().getResource(entry.getName());
                     if (resource == null) {
                         log.error("Could not find file {} in plugin's assets!", entry.getName());
                         continue;
